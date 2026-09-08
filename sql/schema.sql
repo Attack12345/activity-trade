@@ -1,5 +1,6 @@
 -- =====================================================================
 -- activity_trade 完整建表脚本（幂等：按依赖顺序 DROP 后重建）
+-- 与 docs/development-guide.md §6 保持一致
 -- =====================================================================
 
 CREATE DATABASE IF NOT EXISTS activity_trade DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

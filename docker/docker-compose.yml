@@ -4,7 +4,7 @@
 #   - MySQL  ：本机原生 MySQL 8.0.42，端口 3306，root/1234
 #   - Redis  ：现有容器 redis7（redis:7-alpine），6379，requirepass 123456
 #   - RocketMQ：现有容器 ticket-ai-namesrv / ticket-ai-broker（5.3.1），9876/10911
-# 若在全新 Linux/Mac 环境使用本文件，按此模板起服务并保持密码一致。
+# 若在全新 Linux/Mac 环境使用本文件，注意与本机差异化配置保持一致（密码、requirepass）。
 # =====================================================================
 services:
   mysql:
@@ -39,6 +39,7 @@ services:
       retries: 5
 
   # RocketMQ 参考（多容器，5.x）。本机已有 ticket-ai-namesrv / ticket-ai-broker，按需注释避免端口冲突。
+  # 关键：name-server=127.0.0.1:9876；broker 需 DB 事务/延迟消息开启：delayOffsetEnable 常量默认开启。
   # namesrv:
   #   image: apache/rocketmq:5.3.1
   #   container_name: activity-trade-namesrv
@@ -51,7 +52,7 @@ services:
   #   ports: ["10909:10909", "10911:10911"]
   #   environment:
   #     NAMESRV_ADDR: namesrv:9876
-  #   command: sh mqbroker -n namesrv:9876
+  #   command: sh mqbroker -n namesrv:9876 --enable-proxy-less
 
 volumes:
   mysql-data:
