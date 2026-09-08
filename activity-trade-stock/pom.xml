@@ -10,12 +10,22 @@
   </parent>
   <artifactId>activity-trade-stock</artifactId>
   <name>activity-trade-stock</name>
-  <description>库存：Lua 预减、DB 扣减、回补（M6 启用）</description>
+  <description>库存：Lua 预减、DB 扣减、回补、库存扣减日志（M6）</description>
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>activity-trade-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-infra</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

@@ -162,6 +162,33 @@ public class ActivityService {
         return activity;
     }
 
+    /** M6：公开的按 id 校验读取（供 order 模块抢购校验） */
+    public Activity getActivityOrThrow(Long activityId) {
+        return requireActivity(activityId);
+    }
+
+    /** M6：活动内某商品（供抢购校验） */
+    public ActivitySku getSku(Long activityId, Long skuId) {
+        return activitySkuMapper.selectOne(
+                new LambdaQueryWrapper<ActivitySku>()
+                        .eq(ActivitySku::getActivityId, activityId)
+                        .eq(ActivitySku::getSkuId, skuId));
+    }
+
+    /** M6：商品主信息（订单标题展示） */
+    public Product getProduct(Long skuId) {
+        return productMapper.selectById(skuId);
+    }
+
+    /** M6：DB 乐观锁扣减库存（seckill_stock > 0 才扣，返回影响行数） */
+    public int deductSeckillStock(Long skuRowId) {
+        return activitySkuMapper.update(null,
+                new LambdaUpdateWrapper<ActivitySku>()
+                        .eq(ActivitySku::getId, skuRowId)
+                        .gt(ActivitySku::getSeckillStock, 0)
+                        .setSql("seckill_stock = seckill_stock - 1, version = version + 1"));
+    }
+
     private Map<Long, Product> productMap(List<ActivitySku> skus) {
         if (skus.isEmpty()) {
             return Map.of();
