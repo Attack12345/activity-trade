@@ -7,17 +7,21 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
-  # ---- M2 启用（MySQL/MyBatis-Plus）----
+  # ---- M2 已启用（MySQL/MyBatis-Plus，本机复用原生 MySQL 8.0.42:3306）----
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/activity_trade?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: root123456
+    password: '1234'
     driver-class-name: com.mysql.cj.jdbc.Driver
-  # ---- M2 启用（Redis）----
+    hikari:
+      # 缺库时不阻塞启动（启动后首次访问才报错），满足「缺库不崩」验收
+      initialization-fail-timeout: -1
+  # ---- M2 已启用（Redis，复用容器 redis7:6379，requirepass=123456）----
   data:
     redis:
       host: 127.0.0.1
       port: 6379
+      password: '123456'
   # Caffeine 本地缓存由 M5 代码配置（CacheConfig），此处不写 Spring 配置项
 
 mybatis-plus:

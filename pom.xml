@@ -53,6 +53,12 @@
         <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         <version>${mybatis-plus.version}</version>
       </dependency>
+      <!-- MyBatis-Plus 3.5.9+ 分页/JSqlParser 插件独立依赖 -->
+      <dependency>
+        <groupId>com.baomidou</groupId>
+        <artifactId>mybatis-plus-jsqlparser</artifactId>
+        <version>${mybatis-plus.version}</version>
+      </dependency>
       <!-- Redis / 分布式锁 / 布隆过滤器 -->
       <dependency>
         <groupId>org.redisson</groupId>
