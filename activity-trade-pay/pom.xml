@@ -10,12 +10,35 @@
   </parent>
   <artifactId>activity-trade-pay</artifactId>
   <name>activity-trade-pay</name>
-  <description>支付（Mock）：回调、验签、去重（M8 启用）</description>
+  <description>支付（Mock）：mock 发起、回调验签、幂等、发 TRADE_PAY_RESULT</description>
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>activity-trade-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-infra</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-order</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

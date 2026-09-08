@@ -189,6 +189,18 @@ public class ActivityService {
                         .setSql("seckill_stock = seckill_stock - 1, version = version + 1"));
     }
 
+    /** M8：DB 库存回补 +1（关单/退款），按活动+商品定位行 */
+    public int returnSeckillStock(Long activityId, Long skuId) {
+        ActivitySku sku = getSku(activityId, skuId);
+        if (sku == null) {
+            return 0;
+        }
+        return activitySkuMapper.update(null,
+                new LambdaUpdateWrapper<ActivitySku>()
+                        .eq(ActivitySku::getId, sku.getId())
+                        .setSql("seckill_stock = seckill_stock + 1, version = version + 1"));
+    }
+
     private Map<Long, Product> productMap(List<ActivitySku> skus) {
         if (skus.isEmpty()) {
             return Map.of();

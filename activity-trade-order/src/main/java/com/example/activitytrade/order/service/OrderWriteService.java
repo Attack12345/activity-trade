@@ -84,4 +84,21 @@ public class OrderWriteService {
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Order>()
                         .eq(Order::getOrderNo, orderNo)) > 0;
     }
+
+    /** 按 orderNo 查询（M8 支付/关单） */
+    public Order getByOrderNo(String orderNo) {
+        return orderMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Order>()
+                        .eq(Order::getOrderNo, orderNo));
+    }
+
+    /** 支付成功标记：仅当仍为待支付(0)时置 1；返回是否转换成功（与关单互斥见 lock:close） */
+    public boolean markPaid(String orderNo) {
+        return orderMapper.update(null,
+                new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Order>()
+                        .eq(Order::getOrderNo, orderNo)
+                        .eq(Order::getStatus, 0)
+                        .set(Order::getStatus, 1)
+                        .set(Order::getPayTime, java.time.LocalDateTime.now())) > 0;
+    }
 }

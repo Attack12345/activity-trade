@@ -10,12 +10,36 @@
   </parent>
   <artifactId>activity-trade-rights</artifactId>
   <name>activity-trade-rights</name>
-  <description>权益：发券、补偿（M8 启用）</description>
+  <description>权益：发券履约（消费 TRADE_PAY_RESULT）、我的权益</description>
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>activity-trade-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-infra</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-security</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-settle</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

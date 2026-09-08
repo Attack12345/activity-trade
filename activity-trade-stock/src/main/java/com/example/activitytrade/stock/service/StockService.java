@@ -99,6 +99,15 @@ public class StockService {
         stockDeductLogMapper.insert(logEntry);
     }
 
+    /** M8：占用日志置回滚（关单/退款），幂等 */
+    public int rollbackOccupied(String orderNo) {
+        return stockDeductLogMapper.update(null,
+                new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<StockDeductLog>()
+                        .eq(StockDeductLog::getOrderNo, orderNo)
+                        .eq(StockDeductLog::getStatus, 0)
+                        .set(StockDeductLog::getStatus, 2));
+    }
+
     private String stockKey(Long activityId, Long skuId, int segment) {
         return "stock:" + activityId + ":" + skuId + ":" + segment;
     }
