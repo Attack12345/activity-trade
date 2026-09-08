@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.example</groupId>
+    <artifactId>activity-trade-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>activity-trade-stock</artifactId>
+  <name>activity-trade-stock</name>
+  <description>库存：Lua 预减、DB 扣减、回补（M6 启用）</description>
+  <dependencies>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+</project>

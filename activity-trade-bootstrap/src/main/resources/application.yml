@@ -1,0 +1,53 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: activity-trade
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  # ---- M2 启用（MySQL/MyBatis-Plus）----
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/activity_trade?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # ---- M2 启用（Redis）----
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+  # Caffeine 本地缓存由 M5 代码配置（CacheConfig），此处不写 Spring 配置项
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    banner: false
+
+# ---- M7 启用（RocketMQ）----
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: TRADE_PRODUCER
+  consumer:
+    group: TRADE_CONSUMER
+
+app:
+  jwt:
+    # dev-only 固定密钥，勿用于生产
+    secret: dev-only-activity-trade-jwt-secret-2026-8f3a2b9c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b
+    expire-minutes: 120
+  seckill:
+    rate-qps: 20                 # 应用层滑动窗口：单用户/秒
+    bloom-total: 1000000         # 布隆预计元素数
+    bloom-fpp: 0.001             # 布隆误判率
+    stock-segments: 1            # 预库存分段数（默认 1）
+    stock-ttl-minutes: 120       # 预库存 key 有效期
+    close-delay-level: 18        # RocketMQ 延迟等级 18=30min；联调用 3=10s
+  settle:
+    cron: "0 */5 * * * *"        # 对账每 5 分钟
+    close-cron: "0 * * * * *"    # 关单兜底每分钟扫描
