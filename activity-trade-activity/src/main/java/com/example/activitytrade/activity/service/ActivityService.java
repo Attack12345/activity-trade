@@ -3,6 +3,7 @@ package com.example.activitytrade.activity.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.activitytrade.activity.cache.ActivityCacheService;
 import com.example.activitytrade.activity.dto.ActivityCreateReq;
 import com.example.activitytrade.activity.dto.ActivityDetailVO;
 import com.example.activitytrade.activity.dto.ActivityUpdateReq;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 /**
  * 活动/商品服务（M4）。
  * 注意：M4 使用秒杀库存作为可抢库存展示，真实已售统计 M6 接入。
+ * M5：详情读取改走 {@link ActivityCacheService}（多级缓存）。
  */
 @Service
 public class ActivityService {
@@ -37,12 +39,14 @@ public class ActivityService {
     private final ActivityMapper activityMapper;
     private final ActivitySkuMapper activitySkuMapper;
     private final ProductMapper productMapper;
+    private final ActivityCacheService activityCacheService;
 
     public ActivityService(ActivityMapper activityMapper, ActivitySkuMapper activitySkuMapper,
-                           ProductMapper productMapper) {
+                           ProductMapper productMapper, ActivityCacheService activityCacheService) {
         this.activityMapper = activityMapper;
         this.activitySkuMapper = activitySkuMapper;
         this.productMapper = productMapper;
+        this.activityCacheService = activityCacheService;
     }
 
     /** 用户端列表：仅显示预热(1)/进行中(2)，按开始时间升序 */
@@ -64,24 +68,7 @@ public class ActivityService {
     }
 
     public ActivityDetailVO detail(Long activityId) {
-        Activity activity = requireActivity(activityId);
-        List<ActivitySku> skus = activitySkuMapper.selectList(
-                new LambdaQueryWrapper<ActivitySku>().eq(ActivitySku::getActivityId, activityId));
-        Map<Long, Product> products = productMap(skus);
-        List<SkuVO> voList = new ArrayList<>();
-        for (ActivitySku sku : skus) {
-            SkuVO vo = new SkuVO();
-            Product product = products.get(sku.getSkuId());
-            vo.setSkuId(sku.getSkuId());
-            vo.setTitle(product == null ? String.valueOf(sku.getSkuId()) : product.getTitle());
-            vo.setImage(product == null ? "" : product.getImgUrl());
-            vo.setSeckillPrice(sku.getSeckillPrice());
-            vo.setOriginalPrice(sku.getOriginalPrice());
-            vo.setStockLeft(sku.getSeckillStock());
-            vo.setStockStatus(sku.getSeckillStock() > 0 ? 1 : 0);
-            voList.add(vo);
-        }
-        return ActivityDetailVO.of(activity, voList);
+        return activityCacheService.getDetail(activityId);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -115,6 +102,7 @@ public class ActivityService {
             throw new BizException(ErrorCode.PARAM_ERROR, "结束时间必须晚于开始时间");
         }
         activityMapper.updateById(activity);
+        activityCacheService.invalidate(activityId);
         return activity;
     }
 
@@ -128,6 +116,7 @@ public class ActivityService {
                         .eq(Activity::getId, activityId)
                         .set(Activity::getStatus, target.code()));
         activity.setStatus(target.code());
+        activityCacheService.invalidate(activityId);
         return activity;
     }
 
@@ -161,6 +150,7 @@ public class ActivityService {
             }
             count++;
         }
+        activityCacheService.invalidate(activityId);
         return count;
     }
 

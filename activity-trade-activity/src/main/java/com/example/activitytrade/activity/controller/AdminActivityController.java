@@ -1,5 +1,6 @@
 package com.example.activitytrade.activity.controller;
 
+import com.example.activitytrade.activity.cache.ActivityCacheService;
 import com.example.activitytrade.activity.dto.ActivityCreateReq;
 import com.example.activitytrade.activity.dto.ActivityUpdateReq;
 import com.example.activitytrade.activity.dto.SkuUpsertReq;
@@ -19,18 +20,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * 管理端活动接口（API 契约 #5~#9），/api/admin/** 由拦截器校验 role=1。
+ * 管理端活动接口（API 契约 #5~#9、#10 预热、#11 库存），/api/admin/** 由拦截器校验 role=1。
  */
 @RestController
 @RequestMapping("/api/admin/activities")
 public class AdminActivityController {
 
     private final ActivityService activityService;
+    private final ActivityCacheService activityCacheService;
 
-    public AdminActivityController(ActivityService activityService) {
+    public AdminActivityController(ActivityService activityService, ActivityCacheService activityCacheService) {
         this.activityService = activityService;
+        this.activityCacheService = activityCacheService;
     }
 
     @GetMapping
@@ -58,5 +62,17 @@ public class AdminActivityController {
     @PostMapping("/{id}/skus")
     public Result<Integer> saveSkus(@PathVariable Long id, @Valid @RequestBody List<SkuUpsertReq> items) {
         return Result.ok(activityService.saveSkus(id, items));
+    }
+
+    /** 预热（API 契约 #10） */
+    @PostMapping("/{id}/preheat")
+    public Result<Map<String, Object>> preheat(@PathVariable Long id) {
+        return Result.ok(activityCacheService.prepare(id));
+    }
+
+    /** 库存快照（API 契约 #11）：DB vs Redis 预库存 */
+    @GetMapping("/{id}/stock")
+    public Result<Map<String, Object>> stock(@PathVariable Long id) {
+        return Result.ok(activityCacheService.stockSnapshot(id));
     }
 }
