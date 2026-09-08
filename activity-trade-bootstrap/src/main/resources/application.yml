@@ -16,11 +16,11 @@ spring:
     hikari:
       # 缺库时不阻塞启动（启动后首次访问才报错），满足「缺库不崩」验收
       initialization-fail-timeout: -1
-  # ---- M2 已启用（Redis，复用容器 redis7:6379，requirepass=123456）----
+  # ---- M2 已启用（Redis，项目专用容器 activity-trade-redis:6381，requirepass=123456）----
   data:
     redis:
       host: 127.0.0.1
-      port: 6379
+      port: 6381
       password: '123456'
   # Caffeine 本地缓存由 M5 代码配置（CacheConfig），此处不写 Spring 配置项
 

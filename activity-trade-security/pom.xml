@@ -10,12 +10,57 @@
   </parent>
   <artifactId>activity-trade-security</artifactId>
   <name>activity-trade-security</name>
-  <description>安全：JWT、AuthInterceptor、@Idempotent、限流组件（M3 启用）</description>
+  <description>安全：JWT、AuthInterceptor、UserContext、@Idempotent、限流组件</description>
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>activity-trade-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-infra</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <!-- JWT -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- @Idempotent AOP -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
+    <!-- 参数校验（DTO @Valid） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <!-- BCrypt（独立模块，仅取密码加密器，不引入安全框架） -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
+    </dependency>
+    <!-- 拦截器/WebMvcConfigurer 需 Servlet 与 spring-webmvc -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

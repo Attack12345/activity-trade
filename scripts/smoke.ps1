@@ -7,7 +7,7 @@
 $ErrorActionPreference = 'Stop'
 $base  = 'http://localhost:8080'
 $mysql = 'C:\Users\32621\Desktop\develop\mysql\mysql-8.0.42-winx64\bin\mysql.exe'
-$redisContainer = 'redis7'
+$redisContainer = 'activity-trade-redis'
 $redisPassword  = '123456'
 
 Write-Output '==> 1. GET /api/health'
