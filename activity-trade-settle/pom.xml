@@ -10,12 +10,22 @@
   </parent>
   <artifactId>activity-trade-settle</artifactId>
   <name>activity-trade-settle</name>
-  <description>对账/补偿/指标（M9 启用）</description>
+  <description>对账/补偿/指标 + 业务消息日志（trade_log）</description>
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>activity-trade-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>activity-trade-infra</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

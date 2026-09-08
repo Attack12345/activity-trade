@@ -2,12 +2,13 @@ package com.example.activitytrade.order.service;
 
 import com.example.activitytrade.activity.entity.Activity;
 import com.example.activitytrade.activity.entity.ActivitySku;
-import com.example.activitytrade.activity.entity.Product;
 import com.example.activitytrade.activity.service.ActivityService;
 import com.example.activitytrade.common.api.ErrorCode;
 import com.example.activitytrade.common.exception.BizException;
+import com.example.activitytrade.common.util.IdGenerator;
 import com.example.activitytrade.order.dto.SeckillResp;
-import com.example.activitytrade.order.entity.Order;
+import com.example.activitytrade.order.mq.TradeProducer;
+import com.example.activitytrade.order.mq.TxResult;
 import com.example.activitytrade.security.limiter.SlidingWindowRateLimiter;
 import com.example.activitytrade.stock.service.StockService;
 import org.slf4j.Logger;
@@ -17,8 +18,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 /**
- * 抢购服务（M6，§8.1 1~5 步；第 5 步 M7 替换为事务消息）：
- * 限流 → 活动/商品校验 → Redis Lua 预减 → 本地事务建单；失败回补预减。
+ * 抢购服务（M7，§8.1 第 5 步升级为事务消息）：
+ * 限流 → 校验 → Redis Lua 预减 → RocketMQ 事务消息（半消息+本地事务+回查）下单 → 失败回补预减 → 发送关单延迟消息。
  */
 @Service
 public class SeckillService {
@@ -29,14 +30,14 @@ public class SeckillService {
     private final SlidingWindowRateLimiter rateLimiter;
     private final ActivityService activityService;
     private final StockService stockService;
-    private final OrderWriteService orderWriteService;
+    private final TradeProducer tradeProducer;
 
     public SeckillService(SlidingWindowRateLimiter rateLimiter, ActivityService activityService,
-                          StockService stockService, OrderWriteService orderWriteService) {
+                          StockService stockService, TradeProducer tradeProducer) {
         this.rateLimiter = rateLimiter;
         this.activityService = activityService;
         this.stockService = stockService;
-        this.orderWriteService = orderWriteService;
+        this.tradeProducer = tradeProducer;
     }
 
     public SeckillResp seckill(Long userId, Long activityId, Long skuId) {
@@ -65,18 +66,34 @@ public class SeckillService {
         if (result == StockService.Result.SOLD_OUT) {
             throw new BizException(ErrorCode.SOLD_OUT, "已售罄");
         }
-        // 4) 本地事务落库；任何失败回补预减
-        Product product = activityService.getProduct(skuId);
+        // 4) 事务消息下单（半消息 → 本地事务 → 回查）；本地事务失败则回补预减
+        String orderNo = IdGenerator.nextIdStr();
+        TxResult tx = new TxResult();
+        TradeProducer.Arg arg = new TradeProducer.Arg(orderNo, userId, activityId, skuId, tx);
         try {
-            Order order = orderWriteService.createSeckillOrder(userId, activity, sku, product);
-            return new SeckillResp(order.getOrderNo(), order.getStatus());
-        } catch (BizException e) {
-            stockService.compensate(activityId, skuId, userId);
-            throw e;
+            tradeProducer.sendOrderCreate(arg);
         } catch (Exception e) {
-            log.error("seckill order failed, compensate: user={},act={},sku={}", userId, activityId, skuId, e);
+            log.error("send order tx message failed, compensate: act={},sku={},user={}", activityId, skuId, userId, e);
             stockService.compensate(activityId, skuId, userId);
             throw new BizException(ErrorCode.ORDER_CREATE_FAILED, "下单失败，请重试");
         }
+        if (!tx.isCommit()) {
+            stockService.compensate(activityId, skuId, userId);
+            Integer code = tx.getErrorCode();
+            if (code != null && code == ErrorCode.STOCK_DEDUCT_FAILED) {
+                throw new BizException(ErrorCode.SOLD_OUT, "已售罄");
+            }
+            if (code != null && code == ErrorCode.DUPLICATE_BUY) {
+                throw new BizException(ErrorCode.DUPLICATE_BUY, "重复参与");
+            }
+            throw new BizException(ErrorCode.ORDER_CREATE_FAILED, "下单失败，请重试");
+        }
+        // 5) 关单延迟消息（30min 未支付关单；仅发送，M8 消费）
+        try {
+            tradeProducer.sendCloseDelay(orderNo);
+        } catch (Exception e) {
+            log.warn("send close delay message failed, orderNo={}", orderNo, e);
+        }
+        return new SeckillResp(orderNo, 0);
     }
 }

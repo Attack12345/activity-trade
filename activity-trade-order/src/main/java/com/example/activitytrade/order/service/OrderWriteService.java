@@ -6,7 +6,6 @@ import com.example.activitytrade.activity.entity.Product;
 import com.example.activitytrade.activity.service.ActivityService;
 import com.example.activitytrade.common.api.ErrorCode;
 import com.example.activitytrade.common.exception.BizException;
-import com.example.activitytrade.common.util.IdGenerator;
 import com.example.activitytrade.order.entity.Order;
 import com.example.activitytrade.order.entity.OrderItem;
 import com.example.activitytrade.order.mapper.OrderItemMapper;
@@ -44,12 +43,11 @@ public class OrderWriteService {
      * DB 库存不足抛 3002；唯一约束冲突抛 2005（重复参与）。
      */
     @Transactional(rollbackFor = Exception.class)
-    public Order createSeckillOrder(Long userId, Activity activity, ActivitySku sku, Product product) {
+    public Order createSeckillOrder(Long userId, Activity activity, ActivitySku sku, Product product, String orderNo) {
         int rows = activityService.deductSeckillStock(sku.getId());
         if (rows == 0) {
             throw new BizException(ErrorCode.STOCK_DEDUCT_FAILED, "库存扣减失败");
         }
-        String orderNo = IdGenerator.nextIdStr();
         String title = product == null ? "秒杀商品-" + sku.getSkuId() : product.getTitle();
 
         Order order = new Order();
@@ -78,5 +76,12 @@ public class OrderWriteService {
         stockService.logOccupied(orderNo, activity.getId(), sku.getSkuId());
         log.info("seckill order created: orderNo={},user={},act={},sku={}", orderNo, userId, activity.getId(), sku.getSkuId());
         return order;
+    }
+
+    /** 事务消息回查：订单是否存在 */
+    public boolean existsByOrderNo(String orderNo) {
+        return orderMapper.selectCount(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Order>()
+                        .eq(Order::getOrderNo, orderNo)) > 0;
     }
 }
