@@ -3,6 +3,7 @@ package com.example.activitytrade.bootstrap;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 营销活动交易系统（秒杀） 启动入口。
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication(scanBasePackages = "com.example.activitytrade")
 @MapperScan("com.example.activitytrade")
+@EnableScheduling
 public class ActivityTradeApplication {
 
     public static void main(String[] args) {
